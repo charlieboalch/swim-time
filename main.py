@@ -7,7 +7,8 @@ from predict import SwimTimeModel
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://swim.phqsh.me"
 ]
 
 app.add_middleware(
