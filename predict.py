@@ -26,12 +26,12 @@ class SwimTimeModel:
         with pm.Model() as model:
             theta = pm.StudentT("theta", mu=np.mean(self.log_times), sigma=0.05, nu=(len(self.log_times) - 1))
             sigma = pm.HalfNormal("sigma", 0.1)
-            delta = pm.LogNormal("delta", mu=np.log(self.delta), sigma=0.5)
+            delta = pm.Beta("delta", 2, 80)
 
             p = pm.Beta("p", self.champ_p, self.dual_p)
             z = pm.Bernoulli("z", p, shape=len(self.log_times))
 
-            mu = theta * (1 - delta * z)
+            mu = theta + z * pm.math.log(1 - delta)
             obs = pm.Normal("obs", mu=mu, sigma=sigma, observed=self.log_times)
 
             trace = pm.sample(draws=1000,
@@ -40,7 +40,8 @@ class SwimTimeModel:
                               chains=2,
                               target_accept=0.95,
                               progressbar=False,
-                              compute_convergence_checks=False)
+                              compute_convergence_checks=False,
+                              init='adapt_diag')
 
             # extract posterior samples
             theta_samples = trace.posterior["theta"].values.flatten()
